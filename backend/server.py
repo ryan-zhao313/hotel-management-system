@@ -1,29 +1,32 @@
-from flask import Flask, request
+from flask import Flask, request, Response
 from flask_cors import CORS
 from io import StringIO
 import pandas as pd
-import json
 
 app = Flask(__name__)
 CORS(app)
 
-def process_csv(file):
-    df = pd.read_csv(StringIO(file.decode('utf-8')))
+def process_payroll(file):
+    df = pd.read_csv(file)
 
-    # CSV processing code here
+    # change hours to 8 if employee forgets to clock out
+    df['hours'] = df['hours'].apply(lambda x: 8 if x == 24 else x)
 
-    report = {
-        # Fill in with the processed data
-    }
+    # calculate total hours per person
+    total_hours = df.groupby('name')['hours'].sum().reset_index()
 
-    return report
+    # return as buffer
+    output = StringIO()
+    total_hours.to_csv(output, index=False)
+    output.seek(0)
+
+    return output
 
 
-@app.route('/upload', methods=['POST'])
+@app.route('/upload_payroll', methods=['POST'])
 def upload_file():
     file = request.files['file']
-    df = pd.read_csv(file)
-    return json.dumps({'data': df.to_string()})
+    return Response(process_payroll(file))
 
 
 if __name__ == '__main__':

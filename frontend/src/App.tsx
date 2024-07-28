@@ -3,37 +3,41 @@ import './index.css';
 
 function App() {
   const [file, setFile] = useState<File | null>(null);
-  const [result, setResult] = useState<string>('');
+  const [processedFile, setProcessedFile] = useState<string>('');
 
   function changeFile(event: React.ChangeEvent<HTMLInputElement>) {
     setFile(event.target.files![0]);
   }
 
-  async function uploadFile(event: React.FormEvent) {
+  async function uploadPayroll(event: React.FormEvent) {
+    if (file === null) return;
+
     event.preventDefault();
 
-    const url: string = 'http://127.0.0.1:5000/upload';
+    const url: string = 'http://127.0.0.1:5000/upload_payroll';
 
-    const formData: FormData = new FormData();
-    formData.append('file', file!);
+    const payrollForm: FormData = new FormData();
+    payrollForm.append('file', file!);
 
-    const response: any = await fetch(url, {
+    const payrollProcessorResponse: any = await fetch(url, {
       method: 'POST',
-      body: formData,
+      body: payrollForm,
     });
 
-    const data: any = await response.json();
-    setResult(data.data);
+    const processedPayroll: any = await payrollProcessorResponse.blob();
+    setProcessedFile(window.URL.createObjectURL(processedPayroll));
   }
 
   return (
     <>
       <form className='fileUpload'>
-        <p>upload csv</p>
+        <div>upload payroll</div>
         <input type='file' onChange={changeFile} />
-        <button type='submit' onClick={uploadFile}>upload</button>
+        <button type='submit' onClick={uploadPayroll}>upload</button>
       </form>
-      <div className='result'>{result}</div>
+      <div className='download'>
+        {processedFile !== '' && <a href={processedFile} download={'processed_payroll.csv'}>download</a>}
+      </div>
     </>
   )
 }

@@ -7,3 +7,6 @@
 # run
 
 ```flask --app server run```
+
+# test
+ ```python runtest.py```
